@@ -16,9 +16,9 @@ const SimulatedMarketChart = () => {
   const chartContainerRef = useRef<HTMLDivElement | null>(null);
   const tooltipRef = useRef<HTMLDivElement | null>(null);
   const [showSMA, setShowSMA] = useState(true);
-  const [showEMA, setShowEMA] = useState(true);
-  const [showRSI, setShowRSI] = useState(true);
-  const [showMACD, setShowMACD] = useState(true);
+  const [showEMA, setShowEMA] = useState(false);
+  const [showRSI, setShowRSI] = useState(false);
+  const [showMACD, setShowMACD] = useState(false);
 
   useEffect(() => {
     if (!chartContainerRef.current) return;
