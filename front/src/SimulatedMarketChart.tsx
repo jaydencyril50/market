@@ -146,7 +146,7 @@ const SimulatedMarketChart = () => {
     };
 
     const updateChart = async () => {
-      const response = await fetch('http://localhost:4000/api/market/candles');
+      const response = await fetch('https://market-egl7.onrender.com/api/market/candles');
       const candles: Candle[] = await response.json();
       candleSeries.setData(
         candles.map(c => ({
