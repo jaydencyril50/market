@@ -209,7 +209,7 @@ const SimulatedMarketChart = () => {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', padding: 0, margin: 0, height: '100vh', width: '100vw' }}>
-      <h2 style={{ color: '#fff', marginBottom: '1rem' }}>Simulated SPOT/USDT Market</h2>
+      <h2 style={{ color: '#fff', marginBottom: '1rem' }}>TradeSpot SPOT/USDT Market</h2>
       <div>
         <label><input type="checkbox" checked={showSMA} onChange={() => setShowSMA(!showSMA)} /> SMA</label>
         <label><input type="checkbox" checked={showEMA} onChange={() => setShowEMA(!showEMA)} /> EMA</label>
