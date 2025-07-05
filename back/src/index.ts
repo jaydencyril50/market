@@ -1,7 +1,8 @@
-import express from 'express';
+import express, { Request, Response } from 'express';
 import cors from 'cors';
 import mongoose from 'mongoose';
 import Candle, { ICandle } from './models/Candle';
+import { Schema, model } from 'mongoose';
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -19,6 +20,14 @@ mongoose.connect(process.env.MONGO_URI || '', {
 }).catch(err => {
   console.error('❌ MongoDB connection error:', err);
 });
+
+// Market state schema/model
+const MarketStateSchema = new Schema({
+  trend: Number,
+  strength: Number,
+  duration: Number,
+});
+const MarketState = model('MarketState', MarketStateSchema);
 
 // Track current candle in memory
 let currentCandle: ICandle | null = null;
@@ -53,6 +62,20 @@ const getCurrentCandleTime = () => Math.floor(Date.now() / 60) * 60;
 const createNewCandle = async () => {
   const now = getCurrentCandleTime();
   const last = await Candle.findOne().sort({ time: -1 });
+  // Backfill missed candles if needed
+  if (last && now - last.time >= 60 * 2) {
+    const missed = Math.floor((now - last.time) / 60);
+    for (let i = 1; i < missed; i++) {
+      const fillTime = last.time + i * 60;
+      const fillCandle = new Candle({ time: fillTime, open: last.close, high: last.close, low: last.close, close: last.close, volume: 0 });
+      try {
+        await fillCandle.save();
+        console.log('🛠️ Backfilled missing candle:', fillTime);
+      } catch (err) {
+        // Ignore duplicate errors
+      }
+    }
+  }
   // Simulate gap: sometimes jump price
   let basePrice = last?.close ?? 500;
   if (Math.random() < 0.05) {
@@ -123,15 +146,48 @@ const updateCurrentCandle = async () => {
   }
 };
 
-// Start the intervals
-createNewCandle();
-setInterval(createNewCandle, 60 * 1000); // every 1 minute
-setInterval(updateCurrentCandle, 10 * 1000); // every 10 seconds
+// Self-healing loop for new candle creation
+const loopNewCandle = async () => {
+  await createNewCandle();
+  setTimeout(loopNewCandle, 60 * 1000);
+};
+// Self-healing loop for updating current candle
+const loopUpdateCandle = async () => {
+  await updateCurrentCandle();
+  setTimeout(loopUpdateCandle, 10 * 1000);
+};
 
-// API endpoint
+// Load market state from DB on startup
+async function loadMarketState() {
+  let state = await MarketState.findOne();
+  if (!state) {
+    state = await MarketState.create({ trend: 0, strength: 0, duration: 0 });
+  }
+  marketTrend = state.trend ?? 0;
+  trendStrength = state.strength ?? 0;
+  trendDuration = state.duration ?? 0;
+}
+// Save market state to DB
+async function saveMarketState() {
+  await MarketState.updateOne({}, { trend: marketTrend, strength: trendStrength, duration: trendDuration }, { upsert: true });
+}
+
+// Call loadMarketState before starting loops
+mongoose.connection.once('open', async () => {
+  await loadMarketState();
+  loopNewCandle();
+  loopUpdateCandle();
+  // Periodically save state
+  setInterval(saveMarketState, 10 * 1000);
+});
+
+// API endpoints
 app.get('/api/market/candles', async (req, res) => {
   const candles = await Candle.find().sort({ time: 1 }).limit(500);
   res.json(candles);
+});
+app.get('/api/health', (req: Request, res: Response) => {
+  res.send('✅ Alive');
 });
 
 app.listen(PORT, () => {
