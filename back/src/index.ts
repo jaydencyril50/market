@@ -95,20 +95,28 @@ const createNewCandle = async () => {
   if (Math.random() < 0.05) {
     basePrice += (Math.random() - 0.5) * 40; // gap up/down
   }
-  basePrice = Math.max(400, Math.min(600, basePrice));
+  // Bounce price if out of bounds
+  if (basePrice > 600) basePrice = 600 - (basePrice - 600);
+  if (basePrice < 400) basePrice = 400 + (400 - basePrice);
   // Trend can persist for several candles
   if (trendDuration <= 0) pickNewTrend();
   trendDuration--;
   // Add trend to open
   let open = basePrice + marketTrend * trendStrength * (Math.random() * 2);
-  open = Math.max(400, Math.min(600, +open.toFixed(2)));
+  if (open > 600) open = 600 - (open - 600);
+  if (open < 400) open = 400 + (400 - open);
+  open = +open.toFixed(2);
   // Add some variation to high, low, close
   let high = open + Math.random() * 3;
   let low = open - Math.random() * 3;
   let close = open + (Math.random() - 0.5) * 2;
-  high = Math.max(open, high);
-  low = Math.min(open, low);
-  close = Math.max(low, Math.min(high, close));
+  if (high > 600) high = 600 - (high - 600);
+  if (low < 400) low = 400 + (400 - low);
+  if (close > high) close = high;
+  if (close < low) close = low;
+  high = +Math.max(open, high).toFixed(2);
+  low = +Math.min(open, low).toFixed(2);
+  close = +Math.max(low, Math.min(high, close)).toFixed(2);
   const volume = Math.floor(Math.random() * 100) + 20;
   currentCandle = new Candle({
     time: now,
@@ -139,12 +147,16 @@ const updateCurrentCandle = async () => {
   priceChange += marketTrend * trendStrength * (Math.random() * 0.7 + 0.3); // trend
   if (Math.random() < 0.03) priceChange += (Math.random() - 0.5) * 20; // rare pump/dump
   let newClose = +(currentCandle.close + priceChange).toFixed(2);
-  newClose = Math.max(400, Math.min(600, newClose));
+  // Bounce close if out of bounds
+  if (newClose > 600) newClose = 600 - (newClose - 600);
+  if (newClose < 400) newClose = 400 + (400 - newClose);
   // Wicks: high/low can spike
   let wickUp = Math.random() < 0.2 ? Math.random() * 10 : 0;
   let wickDown = Math.random() < 0.2 ? Math.random() * 10 : 0;
-  const newHigh = Math.max(currentCandle.high, newClose, Math.max(400, Math.min(600, +(newClose + wickUp).toFixed(2))));
-  const newLow = Math.min(currentCandle.low, newClose, Math.max(400, Math.min(600, +(newClose - wickDown).toFixed(2))));
+  let newHigh = Math.max(currentCandle.high, newClose, +(newClose + wickUp).toFixed(2));
+  let newLow = Math.min(currentCandle.low, newClose, +(newClose - wickDown).toFixed(2));
+  if (newHigh > 600) newHigh = 600 - (newHigh - 600);
+  if (newLow < 400) newLow = 400 + (400 - newLow);
   // Volume: higher on big moves
   let volBoost = Math.abs(priceChange) > 5 ? Math.random() * 100 : Math.random() * 20;
   const newVolume = +(currentCandle.volume + Math.floor(volBoost)).toFixed(2);
