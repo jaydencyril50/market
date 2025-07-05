@@ -56,7 +56,7 @@ function pickNewTrend() {
 }
 
 // Helper to get the current 1-min interval timestamp
-const getCurrentCandleTime = () => Math.floor(Date.now() / 60) * 60;
+const getCurrentCandleTime = () => Math.floor(Date.now() / 60000) * 60000;
 
 // Create a new candle every 1 minute
 const createNewCandle = async () => {
