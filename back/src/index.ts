@@ -77,7 +77,7 @@ const createNewCandle = async () => {
       const fillTime = last.time + i * 60000;
       // Add randomization to backfilled candles
       let base = last.close + (Math.random() - 0.5) * 2; // small random walk
-      base = Math.max(400, Math.min(600, +base.toFixed(2)));
+      base = Math.max(450, Math.min(550, +base.toFixed(2)));
       const high = base + Math.random() * 2;
       const low = base - Math.random() * 2;
       const close = base + (Math.random() - 0.5) * 2;
@@ -104,23 +104,23 @@ const createNewCandle = async () => {
     basePrice += randn_bm() * 10; // rare, moderate gap
   }
   // Bounce price if out of bounds
-  if (basePrice > 600) basePrice = 600 - (basePrice - 600);
-  if (basePrice < 400) basePrice = 400 + (400 - basePrice);
+  if (basePrice > 550) basePrice = 550 - (basePrice - 550);
+  if (basePrice < 450) basePrice = 450 + (450 - basePrice);
   // Trend can persist for several candles
   if (trendDuration <= 0) pickNewTrend();
   trendDuration--;
   // Add trend to open, but keep it subtle
   let open = basePrice + marketTrend * trendStrength * (Math.random() * 0.5 + 0.5);
   open += randn_bm() * 0.7; // small random walk
-  if (open > 600) open = 600 - (open - 600);
-  if (open < 400) open = 400 + (400 - open);
+  if (open > 550) open = 550 - (open - 550);
+  if (open < 450) open = 450 + (450 - open);
   open = +open.toFixed(2);
   // Add some variation to high, low, close
   let high = open + Math.abs(randn_bm() * 1.5);
   let low = open - Math.abs(randn_bm() * 1.5);
   let close = open + randn_bm() * 1.2;
-  if (high > 600) high = 600 - (high - 600);
-  if (low < 400) low = 400 + (400 - low);
+  if (high > 550) high = 550 - (high - 550);
+  if (low < 450) low = 450 + (450 - low);
   if (close > high) close = high;
   if (close < low) close = low;
   high = +Math.max(open, high).toFixed(2);
@@ -159,15 +159,15 @@ const updateCurrentCandle = async () => {
   if (Math.random() < 0.01) priceChange += randn_bm() * 8; // rare, moderate move
   let newClose = +(currentCandle.close + priceChange).toFixed(2);
   // Bounce close if out of bounds
-  if (newClose > 600) newClose = 600 - (newClose - 600);
-  if (newClose < 400) newClose = 400 + (400 - newClose);
+  if (newClose > 550) newClose = 550 - (newClose - 550);
+  if (newClose < 450) newClose = 450 + (450 - newClose);
   // Wicks: high/low can spike, but less often
   let wickUp = Math.random() < 0.1 ? Math.abs(randn_bm() * 3) : 0;
   let wickDown = Math.random() < 0.1 ? Math.abs(randn_bm() * 3) : 0;
   let newHigh = Math.max(currentCandle.high, newClose, +(newClose + wickUp).toFixed(2));
   let newLow = Math.min(currentCandle.low, newClose, +(newClose - wickDown).toFixed(2));
-  if (newHigh > 600) newHigh = 600 - (newHigh - 600);
-  if (newLow < 400) newLow = 400 + (400 - newLow);
+  if (newHigh > 550) newHigh = 550 - (newHigh - 550);
+  if (newLow < 450) newLow = 450 + (450 - newLow);
   // Volume: higher on big moves, but mostly small
   let volBoost = Math.abs(priceChange) * 8 + Math.abs(newHigh - newLow) * 2 + randn_bm() * 3;
   const newVolume = +(currentCandle.volume + Math.max(0, Math.floor(volBoost))).toFixed(2);
