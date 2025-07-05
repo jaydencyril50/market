@@ -63,10 +63,10 @@ const createNewCandle = async () => {
   const now = getCurrentCandleTime();
   const last = await Candle.findOne().sort({ time: -1 });
   // Backfill missed candles if needed
-  if (last && now - last.time >= 60 * 2) {
-    const missed = Math.floor((now - last.time) / 60);
+  if (last && now - last.time >= 60000 * 2) {
+    const missed = Math.floor((now - last.time) / 60000);
     for (let i = 1; i < missed; i++) {
-      const fillTime = last.time + i * 60;
+      const fillTime = last.time + i * 60000;
       // Add randomization to backfilled candles
       let base = last.close + (Math.random() - 0.5) * 2; // small random walk
       base = Math.max(400, Math.min(600, +base.toFixed(2)));
