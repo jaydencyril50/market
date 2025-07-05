@@ -67,7 +67,21 @@ const createNewCandle = async () => {
     const missed = Math.floor((now - last.time) / 60);
     for (let i = 1; i < missed; i++) {
       const fillTime = last.time + i * 60;
-      const fillCandle = new Candle({ time: fillTime, open: last.close, high: last.close, low: last.close, close: last.close, volume: 0 });
+      // Add randomization to backfilled candles
+      let base = last.close + (Math.random() - 0.5) * 2; // small random walk
+      base = Math.max(400, Math.min(600, +base.toFixed(2)));
+      const high = base + Math.random() * 2;
+      const low = base - Math.random() * 2;
+      const close = base + (Math.random() - 0.5) * 2;
+      const volume = Math.floor(Math.random() * 50) + 10;
+      const fillCandle = new Candle({
+        time: fillTime,
+        open: base,
+        high: Math.max(base, high),
+        low: Math.min(base, low),
+        close: +close.toFixed(2),
+        volume
+      });
       try {
         await fillCandle.save();
         console.log('🛠️ Backfilled missing candle:', fillTime);
@@ -88,11 +102,22 @@ const createNewCandle = async () => {
   // Add trend to open
   let open = basePrice + marketTrend * trendStrength * (Math.random() * 2);
   open = Math.max(400, Math.min(600, +open.toFixed(2)));
-  const close = open;
-  const high = open;
-  const low = open;
+  // Add some variation to high, low, close
+  let high = open + Math.random() * 3;
+  let low = open - Math.random() * 3;
+  let close = open + (Math.random() - 0.5) * 2;
+  high = Math.max(open, high);
+  low = Math.min(open, low);
+  close = Math.max(low, Math.min(high, close));
   const volume = Math.floor(Math.random() * 100) + 20;
-  currentCandle = new Candle({ time: now, open, high, low, close, volume });
+  currentCandle = new Candle({
+    time: now,
+    open,
+    high: +high.toFixed(2),
+    low: +low.toFixed(2),
+    close: +close.toFixed(2),
+    volume
+  });
   try {
     await currentCandle.save();
     console.log('🕒 New 1-min candle created:', now);
