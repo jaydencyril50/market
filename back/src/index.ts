@@ -139,11 +139,17 @@ const createNewCandle = async () => {
   });
   try {
     await currentCandle.save();
-    console.log('🕒 New 1-min candle created:', now);
+    // Ensure candle count does not exceed 2000
+    const candleCount = await Candle.countDocuments();
+    if (candleCount > 2000) {
+      const excess = candleCount - 2000;
+      // Delete the oldest candles
+      await Candle.deleteMany({}, { sort: { time: 1 }, limit: excess });
+      console.log(`🧹 Deleted ${excess} oldest candles to maintain 2000 limit.`);
+    }
   } catch (err) {
     // If duplicate, fetch and use existing
     currentCandle = await Candle.findOne({ time: now });
-    console.warn('⚠️ Candle already exists for this interval, using existing.');
   }
 };
 
@@ -187,11 +193,6 @@ const updateCurrentCandle = async () => {
   );
   // Also update in-memory
   currentCandle = await Candle.findOne({ time: currentCandle.time });
-  if (currentCandle) {
-    console.log('💹 Updated current candle:', currentCandle.time, 'close:', newClose);
-  } else {
-    console.log('💹 Updated current candle: null', 'close:', newClose);
-  }
 };
 
 // Self-healing loop for new candle creation
