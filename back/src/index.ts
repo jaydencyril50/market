@@ -144,8 +144,10 @@ const createNewCandle = async () => {
     const candleCount = await Candle.countDocuments();
     if (candleCount > 2000) {
       const excess = candleCount - 2000;
-      // Delete the oldest candles
-      await Candle.deleteMany({}, { sort: { time: 1 }, limit: excess });
+      // Delete the oldest candles using an efficient two-step process
+      const oldest = await Candle.find().sort({ time: 1 }).limit(excess).select('_id');
+      const idsToDelete = oldest.map(doc => doc._id);
+      await Candle.deleteMany({ _id: { $in: idsToDelete } });
       console.log(`🧹 Deleted ${excess} oldest candles to maintain 2000 limit.`);
     }
   } catch (err) {
