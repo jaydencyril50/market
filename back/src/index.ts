@@ -92,7 +92,6 @@ const createNewCandle = async () => {
       });
       try {
         await fillCandle.save();
-        console.log('🛠️ Backfilled missing candle:', fillTime);
       } catch (err) {
         // Ignore duplicate errors
       }
@@ -148,7 +147,6 @@ const createNewCandle = async () => {
       const oldest = await Candle.find().sort({ time: 1 }).limit(excess).select('_id');
       const idsToDelete = oldest.map(doc => doc._id);
       await Candle.deleteMany({ _id: { $in: idsToDelete } });
-      console.log(`🧹 Deleted ${excess} oldest candles to maintain 2000 limit.`);
     }
   } catch (err) {
     // If duplicate, fetch and use existing
