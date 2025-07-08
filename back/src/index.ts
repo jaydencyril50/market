@@ -199,12 +199,12 @@ const updateCurrentCandle = async () => {
 // Self-healing loop for new candle creation
 const loopNewCandle = async () => {
   await createNewCandle();
-  setTimeout(loopNewCandle, 60 * 1000);
+  setTimeout(loopNewCandle, 3 * 60 * 1000); // every 3 minutes
 };
 // Self-healing loop for updating current candle
 const loopUpdateCandle = async () => {
   await updateCurrentCandle();
-  setTimeout(loopUpdateCandle, 10 * 1000);
+  setTimeout(loopUpdateCandle, 30 * 1000); // every 30 seconds
 };
 
 // Load market state from DB on startup
