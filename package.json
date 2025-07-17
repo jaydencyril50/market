@@ -1,7 +1,4 @@
 {
-  "scripts": {
-    "start": "npm --prefix back start || npm --prefix front start"
-  },
   "dependencies": {
     "dotenv": "^17.0.0"
   }
